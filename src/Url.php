@@ -15,6 +15,7 @@ namespace think\app;
 use think\App;
 use think\Route;
 use think\route\Url as UrlBuild;
+use think\helper\Str;
 
 /**
  * 路由地址生成
@@ -42,13 +43,13 @@ class Url extends UrlBuild
             // 解析到控制器
             $url = substr($url, 1);
         } elseif ('' === $url) {
-            $url = $request->controller() . '/' . $request->action();
+            $url = $this->getController() . '/' . $request->action();
             if (!$this->app->http->isBind()) {
                 $url = $this->getAppName() . '/' . $url;
             }
         } else {
             // 解析到 应用/控制器/操作
-            $controller = $request->controller();
+            $controller = $this->getController();
             $path       = explode('/', $url);
             $action     = array_pop($path);
             $controller = empty($path) ? $controller : array_pop($path);
@@ -230,5 +231,16 @@ class Url extends UrlBuild
         }
 
         return $app;
+    }
+
+    protected function getController()
+    {
+        $controller = $this->app->request->controller();
+        if (strpos($controller, '.')) {
+            $array = explode('.', $controller);
+            $array[1] = Str::snake($array[1]);
+            $controller = implode('.', $array);
+        }
+        return $controller;
     }
 }
